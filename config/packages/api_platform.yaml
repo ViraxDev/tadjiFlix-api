@@ -1,5 +1,5 @@
 api_platform:
-    title: Fiqhub API
+    title: tadjiflix API
     formats:
         jsonld: [ 'application/ld+json' ]
         json: [ 'application/json' ]

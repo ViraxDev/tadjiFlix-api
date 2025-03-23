@@ -37,7 +37,7 @@ final readonly class EmailVerificationService implements EmailVerificationServic
 
         $email = (new TemplatedEmail())
             ->to($user->getEmail())
-            ->subject('Vérification de votre adresse email - FiqHub')
+            ->subject('Vérification de votre adresse email - tadjiflix')
             ->htmlTemplate('emails/email_verification.html.twig')
             ->context([
                 'verification_url' => $verificationUrl,

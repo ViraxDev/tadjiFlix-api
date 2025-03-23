@@ -1,17 +1,17 @@
 networks:
-  fiqhub-api_network:
+  tadjiflix-api_network:
 
 volumes:
   mysql-data:
 
 services:
-  fiqhub-api_app:
-    container_name: fiqhub-api_app
+  tadjiflix-api_app:
+    container_name: tadjiflix-api_app
     build:
       context: .
       dockerfile: ./infrastructure/php/Dockerfile
     networks:
-      - fiqhub-api_network
+      - tadjiflix-api_network
     volumes:
       - .:/var/task
       - ./var:/var/task/var        # force create ./var
@@ -27,9 +27,9 @@ services:
       - .:/var/task
       - ./infrastructure/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
     depends_on:
-      - fiqhub-api_app
+      - tadjiflix-api_app
     networks:
-      - fiqhub-api_network
+      - tadjiflix-api_network
 
   mysql:
     image: bitnami/mysql:latest
@@ -48,7 +48,7 @@ services:
         source: mysql-data
         target: /bitnami/mysql/data
     networks:
-      - fiqhub-api_network
+      - tadjiflix-api_network
 
   phpmyadmin:
     image: bitnami/phpmyadmin:latest
@@ -62,11 +62,11 @@ services:
     depends_on:
       - mysql
     networks:
-      - fiqhub-api_network
+      - tadjiflix-api_network
   mailhog:
     image: registry.gitlab.com/opencity-labs/mailhog:latest-arm
     ports:
       - "1025:1025"  # SMTP port
       - "8025:8025"  # Web Interface
     networks:
-      - fiqhub-api_network
+      - tadjiflix-api_network

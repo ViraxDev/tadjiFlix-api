@@ -1,8 +1,8 @@
 .PHONY: composer-install create-network help install jwt-keys jwt-keys-test php-cs-fixer phpstan restart bash start stop db-create db-migrate db-test-create db-test-migrate test
 .DEFAULT_GOAL := help
 
-DOCKER_ROOT=docker exec -t --user root $(shell docker ps --filter name=fiqhub-api_app -q)
-DOCKER_ROOT_I=docker exec -ti --user root $(shell docker ps --filter name=fiqhub-api_app -q)
+DOCKER_ROOT=docker exec -t --user root $(shell docker ps --filter name=tadjiflix-api_app -q)
+DOCKER_ROOT_I=docker exec -ti --user root $(shell docker ps --filter name=tadjiflix-api_app -q)
 ARGS=10 2
 GREEN = \033[32m
 YELLOW = \033[33m
@@ -38,10 +38,10 @@ phpstan: composer-install ## Launch static code analysis
 	$(DOCKER_ROOT) vendor/bin/phpstan
 
 start: ## Start the project
-	COMPOSE_PROJECT_NAME="fiqhub-api" docker compose -f docker-compose.yml up -d --build
+	COMPOSE_PROJECT_NAME="tadjiflix-api" docker compose -f docker-compose.yml up -d --build
 
 stop: ## Stop the project
-	COMPOSE_PROJECT_NAME="fiqhub-api" docker compose -f docker-compose.yml down
+	COMPOSE_PROJECT_NAME="tadjiflix-api" docker compose -f docker-compose.yml down
 
 restart: stop start ## Restart the project
 
@@ -50,8 +50,8 @@ deploy-staging:
 	docker-compose --env-file .env.local -f docker-compose.staging.yml up -d --remove-orphans
 
 db-create: ## Create database
-	docker-compose exec mysql mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS fiqhub_test"
-	docker-compose exec mysql mysql -uroot -proot -e "GRANT ALL PRIVILEGES ON fiqhub_test.* TO 'tadji'@'%'"
+	docker-compose exec mysql mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS tadjiflix_test"
+	docker-compose exec mysql mysql -uroot -proot -e "GRANT ALL PRIVILEGES ON tadjiflix_test.* TO 'tadji'@'%'"
 
 db-migrate: ## Run database migrations
 	$(DOCKER_ROOT) bin/console doctrine:migrations:migrate --no-interaction
