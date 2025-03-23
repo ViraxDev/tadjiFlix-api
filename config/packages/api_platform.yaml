@@ -1,0 +1,16 @@
+api_platform:
+    title: Fiqhub API
+    formats:
+        jsonld: [ 'application/ld+json' ]
+        json: [ 'application/json' ]
+    version: 1.0.0
+    defaults:
+        route_prefix: /api
+        stateless: true
+        cache_headers:
+            vary: ['Content-Type', 'Authorization', 'Origin']
+    swagger:
+        api_keys:
+            JWT:
+                name: Authorization
+                type: header

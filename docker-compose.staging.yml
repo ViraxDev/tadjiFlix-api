@@ -1,0 +1,114 @@
+networks:
+  fiqhub-api_network:
+  traefik_network:
+    external: true
+
+volumes:
+  mysql-data:
+
+services:
+  fiqhub-api_app:
+    container_name: fiqhub-api_app
+    build:
+      context: .
+      dockerfile: ./infrastructure/php/Dockerfile
+    networks:
+      - fiqhub-api_network
+    volumes:
+      - .:/var/task
+      - ./var:/var/task/var        # force create ./var
+      - ./vendor:/var/task/vendor  # force create ./vendor
+    depends_on:
+      - mysql
+
+  nginx:
+    image: nginx:1.23.4-alpine
+    volumes:
+      - .:/var/task
+      - ./infrastructure/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - fiqhub-api_app
+    networks:
+      - fiqhub-api_network
+      - traefik_network
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik_network
+
+      - traefik.http.routers.symfony-ui.rule=Host(`${SYMFONY_SUBDOMAIN}.${DOMAIN_NAME}`) && !PathPrefix(`/api`)
+      - traefik.http.routers.symfony-ui.tls=true
+      - traefik.http.routers.symfony-ui.entrypoints=web,websecure
+      - traefik.http.routers.symfony-ui.tls.certresolver=mytlschallenge
+      - traefik.http.routers.symfony-ui.middlewares=symfony-auth@docker
+
+      - traefik.http.routers.symfony-api.rule=Host(`${SYMFONY_SUBDOMAIN}.${DOMAIN_NAME}`) && PathPrefix(`/api`)
+      - traefik.http.routers.symfony-api.tls=true
+      - traefik.http.routers.symfony-api.entrypoints=web,websecure
+      - traefik.http.routers.symfony-api.tls.certresolver=mytlschallenge
+
+      # Authentification middleware
+      - traefik.http.middlewares.symfony-auth.basicauth.users=${BASIC_AUTH_TRAEFIC}
+      - traefik.http.services.symfony.loadbalancer.server.port=80
+
+  mysql:
+    image: bitnami/mysql:latest
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${DATABASE_NAME}
+      MYSQL_USER: ${DATABASE_USER}
+      MYSQL_PASSWORD: ${DATABASE_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - '3306:3306'
+    expose:
+      - '3306'
+    volumes:
+      - type: volume
+        source: mysql-data
+        target: /bitnami/mysql/data
+    networks:
+      - fiqhub-api_network
+  mailhog:
+    image: mailhog/mailhog:latest
+    ports:
+      - "1025:1025"  # SMTP port
+      - "8025:8025"  # Web Interface
+    networks:
+      - fiqhub-api_network
+      - traefik_network
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik_network
+
+      - traefik.http.routers.mailhog.rule=Host(`${MAILHOG_SUBDOMAIN}.${DOMAIN_NAME}`)
+      - traefik.http.routers.mailhog.tls=true
+      - traefik.http.routers.mailhog.entrypoints=web,websecure
+      - traefik.http.routers.mailhog.tls.certresolver=mytlschallenge
+      - traefik.http.routers.mailhog.middlewares=symfony-auth@docker
+
+      - traefik.http.services.mailhog.loadbalancer.server.port=8025
+  phpmyadmin:
+    image: bitnami/phpmyadmin:latest
+    ports:
+      - '8899:8080'
+      - '8900:8443'
+    environment:
+      - DATABASE_HOST=${DATABASE_HOST}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+    depends_on:
+      - mysql
+    networks:
+      - fiqhub-api_network
+      - traefik_network
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik_network
+
+      - traefik.http.routers.phpmyadmin.rule=Host(`${PHPMYADMIN_SUBDOMAIN}.${DOMAIN_NAME}`)
+      - traefik.http.routers.phpmyadmin.tls=true
+      - traefik.http.routers.phpmyadmin.entrypoints=web,websecure
+      - traefik.http.routers.phpmyadmin.tls.certresolver=mytlschallenge
+      - traefik.http.routers.phpmyadmin.middlewares=symfony-auth@docker
+
+      - traefik.http.services.phpmyadmin.loadbalancer.server.port=8080
