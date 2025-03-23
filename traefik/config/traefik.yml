@@ -1,4 +1,4 @@
-# traefik.yml
+# traefik.yml avec logging amélioré
 api:
   dashboard: true
   debug: true
@@ -6,7 +6,7 @@ api:
 entryPoints:
   web:
     address: ":80"
-    # Commenté la redirection automatique pour permettre les challenges ACME
+    # Commenté la redirection pour le debugging
     # http:
     #   redirections:
     #     entryPoint:
@@ -18,6 +18,12 @@ entryPoints:
     http:
       tls:
         certResolver: tadjiflix-tls
+    # Augmenter les timeouts
+    transport:
+      respondingTimeouts:
+        readTimeout: 300s
+        writeTimeout: 300s
+        idleTimeout: 300s
 
 providers:
   docker:
@@ -25,6 +31,9 @@ providers:
     watch: true
     exposedByDefault: false
     network: tadjiflix-traefik_network
+    # Augmenter le polling pour voir les changements rapidement
+    swarmMode: false
+    defaultRule: "Host(`{{ normalize .Name }}.${DOMAIN_NAME}`)"
 
   file:
     filename: /config.yml
@@ -37,7 +46,24 @@ certificatesResolvers:
       httpChallenge:
         entryPoint: web
 
+# Augmenter le niveau de log pour le debugging
 log:
-  level: INFO
+  level: DEBUG
+  format: json
 
-accessLog: {}
+# Activer et configurer les access logs
+accessLog:
+  format: json
+  bufferingSize: 100
+  filters:
+    statusCodes:
+      - "400-599"
+  fields:
+    defaultMode: keep
+    headers:
+      defaultMode: keep
+
+# Activer le traçage pour mieux comprendre les problèmes
+tracing:
+  serviceName: tadjiflix-traefik
+  spanNameLimit: 100

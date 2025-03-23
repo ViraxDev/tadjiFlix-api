@@ -60,10 +60,24 @@ services:
     networks:
       - tadjiflix-api_network
       - tadjiflix-traefik_network
+    # Ajouter des healthchecks pour vérifier si le service est prêt
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:80"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     labels:
       - traefik.enable=true
       - traefik.docker.network=tadjiflix-traefik_network
 
+      # Gérer l'accès à l'interface utilisateur principale (tadjiflix.elev8-agency.eu)
+      - traefik.http.routers.tadjiflix-main.rule=Host(`tadjiflix.${DOMAIN_NAME}`)
+      - traefik.http.routers.tadjiflix-main.tls=true
+      - traefik.http.routers.tadjiflix-main.entrypoints=websecure
+      - traefik.http.routers.tadjiflix-main.tls.certresolver=tadjiflix-tls
+      - traefik.http.routers.tadjiflix-main.middlewares=tadjiflix-symfony-auth@docker
+
+      # Pour les routes spécifiques à l'UI et API en sous-domaine
       - traefik.http.routers.tadjiflix-symfony-ui.rule=Host(`${SYMFONY_SUBDOMAIN}.${DOMAIN_NAME}`) && !PathPrefix(`/api`)
       - traefik.http.routers.tadjiflix-symfony-ui.tls=true
       - traefik.http.routers.tadjiflix-symfony-ui.entrypoints=websecure
@@ -78,6 +92,8 @@ services:
       # Authentification middleware
       - traefik.http.middlewares.tadjiflix-symfony-auth.basicauth.users=${BASIC_AUTH_TRAEFIC}
       - traefik.http.services.tadjiflix-symfony.loadbalancer.server.port=80
+      # Définition explicite du service pour le routeur principal
+      - traefik.http.services.tadjiflix-main.loadbalancer.server.port=80
 
   mysql:
     image: bitnami/mysql:latest
