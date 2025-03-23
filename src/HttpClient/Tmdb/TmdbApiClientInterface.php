@@ -1,0 +1,24 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\HttpClient\Tmdb;
+
+interface TmdbApiClientInterface
+{
+    public function getTrendingTvShows(
+        string $timeWindow = 'week',
+        string $language = 'en-US',
+        int $page = 1
+    ): array;
+
+    public function getTvShowTranslations(int $id): array;
+    public function getTvShowDetails(int $tvShowId, ?string $language = null): array;
+    public function searchTvShows(
+        string $query,
+        ?int $firstAirDateYear = null,
+        bool $includeAdult = false,
+        string $language = 'en-US',
+        int $page = 1
+    ): array;
+}
