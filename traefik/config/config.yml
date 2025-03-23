@@ -4,7 +4,8 @@ http:
     default-headers:
       headers:
         frameDeny: true
-        sslRedirect: true
+        # Désactivé la redirection SSL automatique
+        # sslRedirect: true
         browserXssFilter: true
         contentTypeNosniff: true
         forceSTSHeader: true
@@ -26,3 +27,26 @@ http:
 
     gzip-compress:
       compress: {}
+
+    # Ajout d'un middleware pour rediriger HTTP vers HTTPS sauf pour les challenges ACME
+    https-redirect:
+      redirectScheme:
+        scheme: https
+        permanent: true
+        priority: 100
+
+  # Ajout d'une règle pour laisser passer les challenges ACME
+  routers:
+    acme-challenge:
+      rule: "PathPrefix(`/.well-known/acme-challenge/`)"
+      service: noop
+      entryPoints:
+        - web
+      priority: 1000
+
+  services:
+    # Service factice pour la règle acme-challenge
+    noop:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:9080"

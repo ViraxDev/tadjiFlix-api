@@ -115,6 +115,9 @@ services:
       - traefik.http.routers.tadjiflix-mailhog.entrypoints=websecure
       - traefik.http.routers.tadjiflix-mailhog.tls.certresolver=tadjiflix-tls
       - traefik.http.routers.tadjiflix-mailhog.middlewares=tadjiflix-symfony-auth@docker
+      # Ajouter un routeur HTTP spécial pour permettre le challenge ACME
+      - traefik.http.routers.tadjiflix-mailhog-insecure.rule=Host(`${MAILHOG_SUBDOMAIN}.${DOMAIN_NAME}`)
+      - traefik.http.routers.tadjiflix-mailhog-insecure.entrypoints=web
 
       - traefik.http.services.tadjiflix-mailhog.loadbalancer.server.port=8025
 
