@@ -48,7 +48,7 @@ services:
 
       # Authentification middleware
       - traefik.http.middlewares.symfony-auth.basicauth.users=${BASIC_AUTH_TRAEFIC}
-      - traefik.http.services.symfony.loadbalancer.server.port=80
+      - traefik.http.services.symfony.loadbalancer.server.port=7283
 
   mysql:
     image: bitnami/mysql:latest
@@ -59,7 +59,7 @@ services:
       MYSQL_PASSWORD: ${DATABASE_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     ports:
-      - '3306:3306'
+      - '33271:3306'
     expose:
       - '3306'
     volumes:
@@ -71,8 +71,8 @@ services:
   mailhog:
     image: mailhog/mailhog:latest
     ports:
-      - "1025:1025"  # SMTP port
-      - "8025:8025"  # Web Interface
+      - "10253:1025"  # SMTP port
+      - "18025:8025"  # Web Interface
     networks:
       - tadjiflix-api_network
       - traefik_network
@@ -86,12 +86,12 @@ services:
       - traefik.http.routers.mailhog.tls.certresolver=mytlschallenge
       - traefik.http.routers.mailhog.middlewares=symfony-auth@docker
 
-      - traefik.http.services.mailhog.loadbalancer.server.port=8025
+      - traefik.http.services.mailhog.loadbalancer.server.port=9417
   phpmyadmin:
     image: bitnami/phpmyadmin:latest
     ports:
-      - '8899:8080'
-      - '8900:8443'
+      - '8969:8080'
+      - '8970:8443'
     environment:
       - DATABASE_HOST=${DATABASE_HOST}
       - DATABASE_USER=${DATABASE_USER}
@@ -111,4 +111,4 @@ services:
       - traefik.http.routers.phpmyadmin.tls.certresolver=mytlschallenge
       - traefik.http.routers.phpmyadmin.middlewares=symfony-auth@docker
 
-      - traefik.http.services.phpmyadmin.loadbalancer.server.port=8080
+      - traefik.http.services.phpmyadmin.loadbalancer.server.port=6729
