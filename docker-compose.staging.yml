@@ -1,51 +1,12 @@
 networks:
   tadjiflix-api_network:
-  tadjiflix-traefik_network:
-    name: tadjiflix-traefik_network
+  traefik_network:
+    external: true
 
 volumes:
   mysql-data:
-  traefik-data:
 
 services:
-  traefik:
-    image: traefik:v2.10
-    container_name: tadjiflix-traefik
-    restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-    ports:
-      - "9080:80"      # HTTP - port atypique 9080 au lieu de 80
-      - "9443:443"     # HTTPS - port atypique 9443 au lieu de 443
-      - "9082:8080"    # Dashboard - port atypique 9082 au lieu de 8080
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./traefik/config/traefik.yml:/traefik.yml:ro
-      - ./traefik/config/config.yml:/config.yml:ro
-      - traefik-data:/letsencrypt
-    networks:
-      - tadjiflix-traefik_network
-    command:
-      # Forcer le mode debug et log verbose
-      - "--log.level=DEBUG"
-      - "--certificatesresolvers.tadjiflix-tls.acme.httpchallenge.entrypoint=web"
-      # Désactiver temporairement les redirections TLS pour permettre les challenges
-      - "--entrypoints.web.http.redirections.entryPoint=false"
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=tadjiflix-traefik_network
-      - traefik.http.routers.tadjiflix-traefik-dashboard.rule=Host(`traefik-tadjiflix.${DOMAIN_NAME}`)
-      - traefik.http.routers.tadjiflix-traefik-dashboard.service=api@internal
-      - traefik.http.routers.tadjiflix-traefik-dashboard.entrypoints=websecure
-      - traefik.http.routers.tadjiflix-traefik-dashboard.tls.certresolver=tadjiflix-tls
-      - traefik.http.routers.tadjiflix-traefik-dashboard.middlewares=tadjiflix-traefik-auth@docker
-      - traefik.http.middlewares.tadjiflix-traefik-auth.basicauth.users=${BASIC_AUTH_TRAEFIC}
-      # Routeur spécial pour le challenge ACME (sans authentification)
-      - traefik.http.routers.tadjiflix-acme-traefik.rule=Host(`traefik-tadjiflix.${DOMAIN_NAME}`) && PathPrefix(`/.well-known/acme-challenge/`)
-      - traefik.http.routers.tadjiflix-acme-traefik.entrypoints=web
-      - traefik.http.routers.tadjiflix-acme-traefik.priority=100
-
   tadjiflix-api_app:
     container_name: tadjiflix-api_app
     build:
@@ -69,41 +30,25 @@ services:
       - tadjiflix-api_app
     networks:
       - tadjiflix-api_network
-      - tadjiflix-traefik_network
-    # Ajouter des healthchecks pour vérifier si le service est prêt
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:80"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
+      - traefik_network
     labels:
       - traefik.enable=true
-      - traefik.docker.network=tadjiflix-traefik_network
+      - traefik.docker.network=traefik_network
 
-      # Gérer l'accès à l'interface utilisateur principale (tadjiflix.elev8-agency.eu)
-      - traefik.http.routers.tadjiflix-main.rule=Host(`tadjiflix.${DOMAIN_NAME}`)
-      - traefik.http.routers.tadjiflix-main.tls=true
-      - traefik.http.routers.tadjiflix-main.entrypoints=websecure
-      - traefik.http.routers.tadjiflix-main.tls.certresolver=tadjiflix-tls
-      - traefik.http.routers.tadjiflix-main.middlewares=tadjiflix-symfony-auth@docker
+      - traefik.http.routers.symfony-ui.rule=Host(`${SYMFONY_SUBDOMAIN}.${DOMAIN_NAME}`) && !PathPrefix(`/api`)
+      - traefik.http.routers.symfony-ui.tls=true
+      - traefik.http.routers.symfony-ui.entrypoints=web,websecure
+      - traefik.http.routers.symfony-ui.tls.certresolver=mytlschallenge
+      - traefik.http.routers.symfony-ui.middlewares=symfony-auth@docker
 
-      # Pour les routes spécifiques à l'UI et API en sous-domaine
-      - traefik.http.routers.tadjiflix-symfony-ui.rule=Host(`${SYMFONY_SUBDOMAIN}.${DOMAIN_NAME}`) && !PathPrefix(`/api`)
-      - traefik.http.routers.tadjiflix-symfony-ui.tls=true
-      - traefik.http.routers.tadjiflix-symfony-ui.entrypoints=websecure
-      - traefik.http.routers.tadjiflix-symfony-ui.tls.certresolver=tadjiflix-tls
-      - traefik.http.routers.tadjiflix-symfony-ui.middlewares=tadjiflix-symfony-auth@docker
-
-      - traefik.http.routers.tadjiflix-symfony-api.rule=Host(`${SYMFONY_SUBDOMAIN}.${DOMAIN_NAME}`) && PathPrefix(`/api`)
-      - traefik.http.routers.tadjiflix-symfony-api.tls=true
-      - traefik.http.routers.tadjiflix-symfony-api.entrypoints=websecure
-      - traefik.http.routers.tadjiflix-symfony-api.tls.certresolver=tadjiflix-tls
+      - traefik.http.routers.symfony-api.rule=Host(`${SYMFONY_SUBDOMAIN}.${DOMAIN_NAME}`) && PathPrefix(`/api`)
+      - traefik.http.routers.symfony-api.tls=true
+      - traefik.http.routers.symfony-api.entrypoints=web,websecure
+      - traefik.http.routers.symfony-api.tls.certresolver=mytlschallenge
 
       # Authentification middleware
-      - traefik.http.middlewares.tadjiflix-symfony-auth.basicauth.users=${BASIC_AUTH_TRAEFIC}
-      - traefik.http.services.tadjiflix-symfony.loadbalancer.server.port=80
-      # Définition explicite du service pour le routeur principal
-      - traefik.http.services.tadjiflix-main.loadbalancer.server.port=80
+      - traefik.http.middlewares.symfony-auth.basicauth.users=${BASIC_AUTH_TRAEFIC}
+      - traefik.http.services.symfony.loadbalancer.server.port=7283
 
   mysql:
     image: bitnami/mysql:latest
@@ -123,7 +68,6 @@ services:
         target: /bitnami/mysql/data
     networks:
       - tadjiflix-api_network
-
   mailhog:
     image: mailhog/mailhog:latest
     ports:
@@ -131,22 +75,18 @@ services:
       - "18025:8025"  # Web Interface
     networks:
       - tadjiflix-api_network
-      - tadjiflix-traefik_network
+      - traefik_network
     labels:
       - traefik.enable=true
-      - traefik.docker.network=tadjiflix-traefik_network
+      - traefik.docker.network=traefik_network
 
-      - traefik.http.routers.tadjiflix-mailhog.rule=Host(`${MAILHOG_SUBDOMAIN}.${DOMAIN_NAME}`)
-      - traefik.http.routers.tadjiflix-mailhog.tls=true
-      - traefik.http.routers.tadjiflix-mailhog.entrypoints=websecure
-      - traefik.http.routers.tadjiflix-mailhog.tls.certresolver=tadjiflix-tls
-      - traefik.http.routers.tadjiflix-mailhog.middlewares=tadjiflix-symfony-auth@docker
-      # Ajouter un routeur HTTP spécial pour permettre le challenge ACME
-      - traefik.http.routers.tadjiflix-mailhog-insecure.rule=Host(`${MAILHOG_SUBDOMAIN}.${DOMAIN_NAME}`)
-      - traefik.http.routers.tadjiflix-mailhog-insecure.entrypoints=web
+      - traefik.http.routers.mailhog.rule=Host(`${MAILHOG_SUBDOMAIN}.${DOMAIN_NAME}`)
+      - traefik.http.routers.mailhog.tls=true
+      - traefik.http.routers.mailhog.entrypoints=web,websecure
+      - traefik.http.routers.mailhog.tls.certresolver=mytlschallenge
+      - traefik.http.routers.mailhog.middlewares=symfony-auth@docker
 
-      - traefik.http.services.tadjiflix-mailhog.loadbalancer.server.port=8025
-
+      - traefik.http.services.mailhog.loadbalancer.server.port=9417
   phpmyadmin:
     image: bitnami/phpmyadmin:latest
     ports:
@@ -160,15 +100,15 @@ services:
       - mysql
     networks:
       - tadjiflix-api_network
-      - tadjiflix-traefik_network
+      - traefik_network
     labels:
       - traefik.enable=true
-      - traefik.docker.network=tadjiflix-traefik_network
+      - traefik.docker.network=traefik_network
 
-      - traefik.http.routers.tadjiflix-phpmyadmin.rule=Host(`${PHPMYADMIN_SUBDOMAIN}.${DOMAIN_NAME}`)
-      - traefik.http.routers.tadjiflix-phpmyadmin.tls=true
-      - traefik.http.routers.tadjiflix-phpmyadmin.entrypoints=websecure
-      - traefik.http.routers.tadjiflix-phpmyadmin.tls.certresolver=tadjiflix-tls
-      - traefik.http.routers.tadjiflix-phpmyadmin.middlewares=tadjiflix-symfony-auth@docker
+      - traefik.http.routers.phpmyadmin.rule=Host(`${PHPMYADMIN_SUBDOMAIN}.${DOMAIN_NAME}`)
+      - traefik.http.routers.phpmyadmin.tls=true
+      - traefik.http.routers.phpmyadmin.entrypoints=web,websecure
+      - traefik.http.routers.phpmyadmin.tls.certresolver=mytlschallenge
+      - traefik.http.routers.phpmyadmin.middlewares=symfony-auth@docker
 
-      - traefik.http.services.tadjiflix-phpmyadmin.loadbalancer.server.port=8080
+      - traefik.http.services.phpmyadmin.loadbalancer.server.port=6729
