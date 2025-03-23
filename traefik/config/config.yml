@@ -1,10 +1,17 @@
 # config.yml - Configuration dynamique pour Traefik
 http:
   middlewares:
+    # Middleware pour contourner l'authentification pour les challenges ACME
+    acme-middleware:
+      stripPrefix:
+        prefixes:
+          - "/.well-known/acme-challenge/"
+        forceSlash: false
+
     default-headers:
       headers:
         frameDeny: true
-        # Désactivé la redirection SSL automatique
+        # Désactivé la redirection SSL automatique pour permettre les challenges ACME
         # sslRedirect: true
         browserXssFilter: true
         contentTypeNosniff: true
@@ -28,25 +35,18 @@ http:
     gzip-compress:
       compress: {}
 
-    # Ajout d'un middleware pour rediriger HTTP vers HTTPS sauf pour les challenges ACME
-    https-redirect:
-      redirectScheme:
-        scheme: https
-        permanent: true
-        priority: 100
-
-  # Ajout d'une règle pour laisser passer les challenges ACME
+  # Router global pour les challenges ACME (priorité élevée)
   routers:
-    acme-challenge:
+    acme-global:
       rule: "PathPrefix(`/.well-known/acme-challenge/`)"
-      service: noop
+      service: acme-service
       entryPoints:
         - web
-      priority: 1000
+      priority: 999999  # Priorité très élevée
 
+  # Service factice pour servir les challenges ACME
   services:
-    # Service factice pour la règle acme-challenge
-    noop:
+    acme-service:
       loadBalancer:
         servers:
-          - url: "http://localhost:9080"
+          - url: "http://127.0.0.1"

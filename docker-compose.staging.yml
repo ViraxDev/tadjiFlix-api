@@ -26,6 +26,12 @@ services:
       - traefik-data:/letsencrypt
     networks:
       - tadjiflix-traefik_network
+    command:
+      # Forcer le mode debug et log verbose
+      - "--log.level=DEBUG"
+      - "--certificatesresolvers.tadjiflix-tls.acme.httpchallenge.entrypoint=web"
+      # Désactiver temporairement les redirections TLS pour permettre les challenges
+      - "--entrypoints.web.http.redirections.entryPoint=false"
     labels:
       - traefik.enable=true
       - traefik.docker.network=tadjiflix-traefik_network
@@ -35,6 +41,10 @@ services:
       - traefik.http.routers.tadjiflix-traefik-dashboard.tls.certresolver=tadjiflix-tls
       - traefik.http.routers.tadjiflix-traefik-dashboard.middlewares=tadjiflix-traefik-auth@docker
       - traefik.http.middlewares.tadjiflix-traefik-auth.basicauth.users=${BASIC_AUTH_TRAEFIC}
+      # Routeur spécial pour le challenge ACME (sans authentification)
+      - traefik.http.routers.tadjiflix-acme-traefik.rule=Host(`traefik-tadjiflix.${DOMAIN_NAME}`) && PathPrefix(`/.well-known/acme-challenge/`)
+      - traefik.http.routers.tadjiflix-acme-traefik.entrypoints=web
+      - traefik.http.routers.tadjiflix-acme-traefik.priority=100
 
   tadjiflix-api_app:
     container_name: tadjiflix-api_app
