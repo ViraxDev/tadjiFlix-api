@@ -32,7 +32,6 @@ providers:
 certificatesResolvers:
   tadjiflix-tls:
     acme:
-      email: "fartadji@gmail.com"
       storage: /letsencrypt/acme.json
       httpChallenge:
         entryPoint: web
