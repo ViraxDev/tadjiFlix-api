@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\HttpClient\Tmdb;
 
+use App\Enum\MediaTypeEnum;
+
 interface TmdbApiClientInterface
 {
     public function getTrendingTvShows(
@@ -36,4 +38,6 @@ interface TmdbApiClientInterface
         string $language = 'en-US',
         int $page = 1
     ): array;
+
+    public function getVideos(MediaTypeEnum $mediaType, int $id, string $language = 'en-US'): array;
 }
