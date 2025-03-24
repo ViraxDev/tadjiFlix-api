@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\HttpClient\Tmdb;
 
+use App\Enum\MediaTypeEnum;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -28,7 +29,7 @@ final readonly class TmdbApiClient implements TmdbApiClientInterface
             'page' => $page
         ];
 
-        $response = $this->httpClient->request('GET', self::BASE_URL . '/trending/tv/' . $timeWindow, [
+        $response = $this->httpClient->request('GET', sprintf("%s/trending/tv/%s", self::BASE_URL, $timeWindow), [
             'headers' => [
                 'Authorization' => 'Bearer ' . $this->apiToken,
                 'Accept' => 'application/json',
@@ -49,7 +50,7 @@ final readonly class TmdbApiClient implements TmdbApiClientInterface
             'page' => $page
         ];
 
-        $response = $this->httpClient->request('GET', self::BASE_URL . '/trending/movie/' . $timeWindow, [
+        $response = $this->httpClient->request('GET', sprintf("%s/trending/movie/%s", self::BASE_URL, $timeWindow), [
             'headers' => [
                 'Authorization' => 'Bearer ' . $this->apiToken,
                 'Accept' => 'application/json',
@@ -69,7 +70,6 @@ final readonly class TmdbApiClient implements TmdbApiClientInterface
             ],
         ];
 
-        // Ajout du paramètre de langue optionnel
         if ($language !== null) {
             $options['query'] = ['language' => $language];
         }
@@ -92,7 +92,6 @@ final readonly class TmdbApiClient implements TmdbApiClientInterface
             ],
         ];
 
-        // Ajout du paramètre de langue optionnel
         if ($language !== null) {
             $options['query'] = ['language' => $language];
         }
@@ -148,7 +147,7 @@ final readonly class TmdbApiClient implements TmdbApiClientInterface
             $queryParams['first_air_date_year'] = (string)$firstAirDateYear;
         }
 
-        $response = $this->httpClient->request('GET', self::BASE_URL . '/search/tv', [
+        $response = $this->httpClient->request('GET', sprintf("%s/search/tv", self::BASE_URL), [
             'headers' => [
                 'Authorization' => 'Bearer ' . $this->apiToken,
                 'Accept' => 'application/json',
@@ -172,12 +171,25 @@ final readonly class TmdbApiClient implements TmdbApiClientInterface
             $queryParams['first_air_date_year'] = $primaryReleaseYear;
         }
 
-        $response = $this->httpClient->request('GET', self::BASE_URL . '/search/movie', [
+        $response = $this->httpClient->request('GET', sprintf("%s/search/movie", self::BASE_URL), [
             'headers' => [
                 'Authorization' => 'Bearer ' . $this->apiToken,
                 'Accept' => 'application/json',
             ],
             'query' => $queryParams
+        ]);
+
+        return $response->toArray();
+    }
+
+    public function getVideos(MediaTypeEnum $mediaType, int $id, string $language = 'en-US'): array
+    {
+        $response = $this->httpClient->request('GET', sprintf("%s/%s/%s/videos", self::BASE_URL, $mediaType->value, $id), [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $this->apiToken,
+                'Accept' => 'application/json',
+            ],
+            'query' => compact('language')
         ]);
 
         return $response->toArray();

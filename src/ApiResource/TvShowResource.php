@@ -11,9 +11,11 @@ use ApiPlatform\Metadata\QueryParameter;
 use ApiPlatform\OpenApi\Model\Operation;
 use App\DTO\TvShow;
 use App\DTO\TvShowSearchResults;
+use App\DTO\VideoResults;
 use App\State\Provider\TvShow\TvShowDetailProvider;
 use App\State\Provider\TvShow\TvShowSearchProvider;
 use App\State\Provider\TvShow\TvShowTrendingProvider;
+use App\State\Provider\TvShow\TvShowVideoProvider;
 
 #[ApiResource(
     shortName: 'TvShow',
@@ -60,6 +62,23 @@ use App\State\Provider\TvShow\TvShowTrendingProvider;
                     ),
                     new QueryParameter(
                         'first_air_date_year', schema: ['type' => 'int'], description: 'The year of the first air date', required: false
+                    ),
+                ]
+            )
+        ),
+        new Get(
+            uriTemplate: '/tv/{id}/videos',
+            openapi: new Operation(
+                summary: 'Get videos of a specific TV show',
+                description: 'Retrieves the videos of a TV show by ID'
+            ),
+            output: VideoResults::class,
+            name: 'get_tv_show_videos',
+            provider: TvShowVideoProvider::class,
+            parameters: new Parameters(
+                [
+                    new QueryParameter(
+                        'language', schema: ['type' => 'string'], description: 'The language of the video', required: false
                     ),
                 ]
             )

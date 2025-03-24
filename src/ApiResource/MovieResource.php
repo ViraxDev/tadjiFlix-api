@@ -11,9 +11,11 @@ use ApiPlatform\Metadata\QueryParameter;
 use ApiPlatform\OpenApi\Model\Operation;
 use App\DTO\Movie;
 use App\DTO\MovieSearchResults;
+use App\DTO\VideoResults;
 use App\State\Provider\Movie\MovieDetailProvider;
 use App\State\Provider\Movie\MovieSearchProvider;
 use App\State\Provider\Movie\MovieTrendingProvider;
+use App\State\Provider\Movie\MovieVideoProvider;
 
 #[ApiResource(
     shortName: 'Movie',
@@ -60,6 +62,23 @@ use App\State\Provider\Movie\MovieTrendingProvider;
                     ),
                     new QueryParameter(
                         'primary_release_year', schema: ['type' => 'int'], description: 'The year of the primary release', required: false
+                    ),
+                ]
+            )
+        ),
+        new Get(
+            uriTemplate: '/movie/{id}/videos',
+            openapi: new Operation(
+                summary: 'Get videos of a specific movie',
+                description: 'Retrieves the videos of a movie by ID'
+            ),
+            output: VideoResults::class,
+            name: 'get_movie_videos',
+            provider: MovieVideoProvider::class,
+            parameters: new Parameters(
+                [
+                    new QueryParameter(
+                        'language', schema: ['type' => 'string'], description: 'The language of the video', required: false
                     ),
                 ]
             )
