@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace App\State\Provider;
+namespace App\State\Provider\Movie;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use App\DTO\TvShow;
-use App\DTO\TvShowSearchResults;
+use App\DTO\MovieResult;
+use App\DTO\MovieSearchResults;
 use App\HttpClient\Tmdb\TmdbApiClient;
 use App\HttpClient\Tmdb\TmdbApiClientInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 
-final readonly class TvShowSearchProvider implements ProviderInterface
+final readonly class MovieSearchProvider implements ProviderInterface
 {
     public function __construct(
         private TmdbApiClientInterface $tmdbApiClient,
@@ -32,36 +32,32 @@ final readonly class TvShowSearchProvider implements ProviderInterface
             throw new \InvalidArgumentException('Query parameter is required');
         }
 
-        $firstAirDateYear = $request->query->getInt('first_air_date_year');
-        $includeAdult = $request->query->getBoolean('include_adult');
-        $language = $request->query->get('language', 'en-US');
-        $page = $request->query->getInt('page', 1);
-
-        $searchResults = $this->tmdbApiClient->searchTvShows(
+        $searchResults = $this->tmdbApiClient->searchMovies(
             $query,
-            $firstAirDateYear !== 0 ? $firstAirDateYear : null,
-            $includeAdult,
-            $language,
-            $page
+            $request->query->get('primary_release_year'),
+            $request->query->getBoolean('include_adult'),
+            $request->query->get('language', 'en-US'),
+            $request->query->getInt('page', 1)
         );
 
-        $results = new TvShowSearchResults();
+        $results = new MovieSearchResults();
         $results->page = $searchResults['page'] ?? 1;
         $results->total_pages = $searchResults['total_pages'] ?? 0;
         $results->total_results = $searchResults['total_results'] ?? 0;
 
         if (isset($searchResults['results']) && is_array($searchResults['results'])) {
             foreach ($searchResults['results'] as $item) {
-                $tvShow = new TvShow();
+                $movie = new MovieResult();
                 foreach ($item as $property => $value) {
-                    if (property_exists($tvShow, $property)) {
+                    if (property_exists($movie, $property)) {
                         if (($property === 'poster_path' || $property === 'backdrop_path') && !empty($value)) {
                             $value = sprintf('%s%s', TmdbApiClient::PUBLIC_IMAGE_BASE_URL, $value);
                         }
-                        $tvShow->$property = $value;
+
+                        $movie->$property = $value;
                     }
                 }
-                $results->results[] = $tvShow;
+                $results->results[] = $movie;
             }
         }
 

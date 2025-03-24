@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\State\Provider;
+namespace App\State\Provider\TvShow;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;

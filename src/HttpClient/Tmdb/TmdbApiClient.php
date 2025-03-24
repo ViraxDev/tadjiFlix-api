@@ -39,6 +39,27 @@ final readonly class TmdbApiClient implements TmdbApiClientInterface
         return $response->toArray();
     }
 
+    public function getTrendingMovies(
+        string $timeWindow = 'week',
+        string $language = 'en-US',
+        int $page = 1
+    ): array {
+        $queryParams = [
+            'language' => $language,
+            'page' => $page
+        ];
+
+        $response = $this->httpClient->request('GET', self::BASE_URL . '/trending/movie/' . $timeWindow, [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $this->apiToken,
+                'Accept' => 'application/json',
+            ],
+            'query' => $queryParams
+        ]);
+
+        return $response->toArray();
+    }
+
     public function getTvShowDetails(int $tvShowId, ?string $language = null): array
     {
         $options = [
@@ -62,9 +83,44 @@ final readonly class TmdbApiClient implements TmdbApiClientInterface
         return $response->toArray();
     }
 
+    public function getMovieDetails(int $id, ?string $language = null): array
+    {
+        $options = [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $this->apiToken,
+                'Accept' => 'application/json',
+            ],
+        ];
+
+        // Ajout du paramètre de langue optionnel
+        if ($language !== null) {
+            $options['query'] = ['language' => $language];
+        }
+
+        $response = $this->httpClient->request(
+            'GET',
+            self::BASE_URL . '/movie/' . $id,
+            $options
+        );
+
+        return $response->toArray();
+    }
+
     public function getTvShowTranslations(int $id): array
     {
         $response = $this->httpClient->request('GET', sprintf("%s/tv/%s/translations", self::BASE_URL, $id), [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $this->apiToken,
+                'Accept' => 'application/json',
+            ],
+        ]);
+
+        return $response->toArray();
+    }
+
+    public function getMovieTranslations(int $id): array
+    {
+        $response = $this->httpClient->request('GET', sprintf("%s/movie/%s/translations", self::BASE_URL, $id), [
             'headers' => [
                 'Authorization' => 'Bearer ' . $this->apiToken,
                 'Accept' => 'application/json',
@@ -93,6 +149,30 @@ final readonly class TmdbApiClient implements TmdbApiClientInterface
         }
 
         $response = $this->httpClient->request('GET', self::BASE_URL . '/search/tv', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $this->apiToken,
+                'Accept' => 'application/json',
+            ],
+            'query' => $queryParams
+        ]);
+
+        return $response->toArray();
+    }
+
+    public function searchMovies(string $query, ?string $primaryReleaseYear = null, bool $includeAdult = false, string $language = 'en-US', int $page = 1): array
+    {
+        $queryParams = [
+            'query' => $query,
+            'include_adult' => $includeAdult,
+            'language' => $language,
+            'page' => $page
+        ];
+
+        if ($primaryReleaseYear !== null) {
+            $queryParams['first_air_date_year'] = $primaryReleaseYear;
+        }
+
+        $response = $this->httpClient->request('GET', self::BASE_URL . '/search/movie', [
             'headers' => [
                 'Authorization' => 'Bearer ' . $this->apiToken,
                 'Accept' => 'application/json',
