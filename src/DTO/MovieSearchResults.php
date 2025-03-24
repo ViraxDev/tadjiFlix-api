@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\DTO;
 
-final class TvShowSearchResults extends SearchResults
+final class MovieSearchResults extends SearchResults
 {
 
     /**
-     * @var TvShowResult[]
+     * @var MovieResult[]
      */
     public array $results = [];
 }

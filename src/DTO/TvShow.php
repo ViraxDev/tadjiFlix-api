@@ -3,10 +3,6 @@ declare(strict_types=1);
 
 namespace App\DTO;
 
-use ApiPlatform\Metadata\ApiResource;
-use App\State\Provider\TvShowProvider;
-
-#[ApiResource(provider: TvShowProvider::class)]
 final class TvShow
 {
     public int $id;

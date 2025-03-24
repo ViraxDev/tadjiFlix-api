@@ -9,24 +9,24 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Parameters;
 use ApiPlatform\Metadata\QueryParameter;
 use ApiPlatform\OpenApi\Model\Operation;
-use App\DTO\TvShow;
-use App\DTO\TvShowSearchResults;
-use App\State\Provider\TvShow\TvShowDetailProvider;
-use App\State\Provider\TvShow\TvShowSearchProvider;
-use App\State\Provider\TvShow\TvShowTrendingProvider;
+use App\DTO\Movie;
+use App\DTO\MovieSearchResults;
+use App\State\Provider\Movie\MovieDetailProvider;
+use App\State\Provider\Movie\MovieSearchProvider;
+use App\State\Provider\Movie\MovieTrendingProvider;
 
 #[ApiResource(
-    shortName: 'TvShow',
+    shortName: 'Movie',
     operations: [
         new Get(
-            uriTemplate: '/tv/trending',
+            uriTemplate: '/movie/trending',
             openapi: new Operation(
-                summary: 'Get trending TV shows',
-                description: 'Get the weekly trending TV shows'
+                summary: 'Get trending movies',
+                description: 'Get the weekly trending movies'
             ),
-            output: TvShowSearchResults::class,
-            name: 'trending_tv_shows',
-            provider: TvShowTrendingProvider::class,
+            output: MovieSearchResults::class,
+            name: 'trending_movies',
+            provider: MovieTrendingProvider::class,
             parameters: new Parameters(
                 [
                     new QueryParameter(
@@ -36,14 +36,14 @@ use App\State\Provider\TvShow\TvShowTrendingProvider;
             )
         ),
         new Get(
-            uriTemplate: '/tv/search',
+            uriTemplate: '/movie/search',
             openapi: new Operation(
-                summary: 'Search for TV shows',
-                description: 'Search for TV shows with various filtering options and pagination'
+                summary: 'Search for movies',
+                description: 'Search for movies with various filtering options and pagination'
             ),
-            output: TvShowSearchResults::class,
-            name: 'search_tv_shows',
-            provider: TvShowSearchProvider::class,
+            output: MovieSearchResults::class,
+            name: 'search_movies',
+            provider: MovieSearchProvider::class,
             parameters: new Parameters(
                 [
                     new QueryParameter(
@@ -53,29 +53,29 @@ use App\State\Provider\TvShow\TvShowTrendingProvider;
                         'include_adult', schema: ['type' => 'bool'], description: 'Include adult content', required: false
                     ),
                     new QueryParameter(
-                        'language', schema: ['type' => 'string'], description: 'The language of the TV show', required: false
+                        'language', schema: ['type' => 'string'], description: 'The language of the movie', required: false
                     ),
                     new QueryParameter(
                         'page', schema: ['type' => 'int'], description: 'The page number', required: false
                     ),
                     new QueryParameter(
-                        'first_air_date_year', schema: ['type' => 'int'], description: 'The year of the first air date', required: false
+                        'primary_release_year', schema: ['type' => 'int'], description: 'The year of the primary release', required: false
                     ),
                 ]
             )
         ),
         new Get(
-            uriTemplate: '/tv/{id}',
+            uriTemplate: '/movie/{id}',
             openapi: new Operation(
-                summary: 'Get details of a specific TV show',
-                description: 'Retrieves the details of a TV show by ID with optional language parameter'
+                summary: 'Get details of a specific movie',
+                description: 'Retrieves the details of a movie by ID with optional language parameter'
             ),
-            output: TvShow::class,
-            name: 'get_tv_show_detail',
-            provider: TvShowDetailProvider::class
+            output: Movie::class,
+            name: 'get_movie_detail',
+            provider: MovieDetailProvider::class
         ),
     ]
 )]
-final class TvShowResource
+final class MovieResource
 {
 }
