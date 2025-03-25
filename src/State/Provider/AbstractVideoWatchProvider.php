@@ -29,7 +29,7 @@ abstract class AbstractVideoWatchProvider implements ProviderInterface
         )['results'] ?? [];
 
         foreach ($results->results as $locale => $result) {
-            if (array_key_exists('logo_path', $results->results[$locale]['flatrate'][0])) {
+            if (isset($results->results[$locale]['flatrate'][0]) && array_key_exists('logo_path', $results->results[$locale]['flatrate'][0])) {
                 $results->results[$locale]['flatrate'][0]['logo_path'] = TmdbApiClient::PUBLIC_IMAGE_BASE_URL . $results->results[$locale]['flatrate'][0]['logo_path'];
             }
         }

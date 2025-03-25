@@ -32,4 +32,6 @@ final class Movie
     public float $vote_average;
     public int $vote_count;
     public array $translations = [];
+    /** @var MediaProvider[]  */
+    public ?array $providers = [];
 }

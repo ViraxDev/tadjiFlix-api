@@ -39,4 +39,7 @@ final class TvShow
     public ?int $vote_count = null;
 
     public ?array $translations = [];
+
+    /** @var MediaProvider[]  */
+    public ?array $providers = [];
 }
