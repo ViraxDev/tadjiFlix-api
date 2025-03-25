@@ -7,7 +7,7 @@ final class Movie
 {
     public bool $adult;
     public ?string $backdrop_path;
-    public ?object $belongs_to_collection;
+    public ?array $belongs_to_collection;
     public int $budget;
     public array $genres;
     public string $homepage;
