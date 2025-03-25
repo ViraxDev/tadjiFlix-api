@@ -194,4 +194,16 @@ final readonly class TmdbApiClient implements TmdbApiClientInterface
 
         return $response->toArray();
     }
+
+    public function getProviders(MediaTypeEnum $mediaType, int $id): array
+    {
+        $response = $this->httpClient->request('GET', sprintf("%s/%s/%s/watch/providers", self::BASE_URL, $mediaType->value, $id), [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $this->apiToken,
+                'Accept' => 'application/json',
+            ]
+        ]);
+
+        return $response->toArray();
+    }
 }

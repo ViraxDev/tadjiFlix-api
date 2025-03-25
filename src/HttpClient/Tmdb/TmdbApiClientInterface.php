@@ -40,4 +40,5 @@ interface TmdbApiClientInterface
     ): array;
 
     public function getVideos(MediaTypeEnum $mediaType, int $id, string $language = 'en-US'): array;
+    public function getProviders(MediaTypeEnum $mediaType, int $id): array;
 }

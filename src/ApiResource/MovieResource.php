@@ -11,11 +11,13 @@ use ApiPlatform\Metadata\QueryParameter;
 use ApiPlatform\OpenApi\Model\Operation;
 use App\DTO\Movie;
 use App\DTO\MovieSearchResults;
+use App\DTO\ProviderResults;
 use App\DTO\VideoResults;
 use App\State\Provider\Movie\MovieDetailProvider;
 use App\State\Provider\Movie\MovieSearchProvider;
 use App\State\Provider\Movie\MovieTrendingProvider;
 use App\State\Provider\Movie\MovieVideoProvider;
+use App\State\Provider\Movie\MovieVideoWatchProvider;
 
 #[ApiResource(
     shortName: 'Movie',
@@ -82,6 +84,16 @@ use App\State\Provider\Movie\MovieVideoProvider;
                     ),
                 ]
             )
+        ),
+        new Get(
+            uriTemplate: '/movie/{id}/watch/providers',
+            openapi: new Operation(
+                summary: 'Get video providers of a specific movie',
+                description: 'Get the list of streaming providers we have for a movie.'
+            ),
+            output: ProviderResults::class,
+            name: 'get_movie_providers',
+            provider: MovieVideoWatchProvider::class
         ),
         new Get(
             uriTemplate: '/movie/{id}',

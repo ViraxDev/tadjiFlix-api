@@ -9,6 +9,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Parameters;
 use ApiPlatform\Metadata\QueryParameter;
 use ApiPlatform\OpenApi\Model\Operation;
+use App\DTO\ProviderResults;
 use App\DTO\TvShow;
 use App\DTO\TvShowSearchResults;
 use App\DTO\VideoResults;
@@ -16,6 +17,7 @@ use App\State\Provider\TvShow\TvShowDetailProvider;
 use App\State\Provider\TvShow\TvShowSearchProvider;
 use App\State\Provider\TvShow\TvShowTrendingProvider;
 use App\State\Provider\TvShow\TvShowVideoProvider;
+use App\State\Provider\TvShow\TvShowVideoWatchProvider;
 
 #[ApiResource(
     shortName: 'TvShow',
@@ -82,6 +84,16 @@ use App\State\Provider\TvShow\TvShowVideoProvider;
                     ),
                 ]
             )
+        ),
+        new Get(
+            uriTemplate: '/tv/{id}/watch/providers',
+            openapi: new Operation(
+                summary: 'Get video providers of a specific TV show',
+                description: 'Get the list of streaming providers we have for a TV show.'
+            ),
+            output: ProviderResults::class,
+            name: 'get_movie_providers',
+            provider: TvShowVideoWatchProvider::class
         ),
         new Get(
             uriTemplate: '/tv/{id}',
