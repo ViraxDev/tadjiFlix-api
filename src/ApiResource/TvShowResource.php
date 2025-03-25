@@ -92,7 +92,7 @@ use App\State\Provider\TvShow\TvShowVideoWatchProvider;
                 description: 'Get the list of streaming providers we have for a TV show.'
             ),
             output: ProviderResults::class,
-            name: 'get_movie_providers',
+            name: 'get_tv_show_providers',
             provider: TvShowVideoWatchProvider::class
         ),
         new Get(
